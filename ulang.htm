@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Selamat Ulang Tahun Aan 🎉</title>
+  <style>
+    :root{--bg1:#0f1724;--bg2:#061022;--accent:#ffd166;--accent2:#06d6a0}
+    html,body{height:100%;margin:0;font-family:Inter, system-ui, Arial, sans-serif;background:linear-gradient(180deg,var(--bg1),var(--bg2));color:#fff;overflow:hidden}
+
+    .wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+    .card{width:min(980px,94vw);height:min(560px,86vh);background:linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.02));border-radius:18px;box-shadow:0 20px 60px rgba(2,6,23,0.7);position:relative;overflow:hidden;padding:28px;display:flex;gap:20px}
+
+    /* left area: message */
+    .left{flex:1;display:flex;flex-direction:column;justify-content:center;gap:12px;padding:18px}
+    h1{font-size:44px;margin:0;letter-spacing:0.6px;text-shadow:0 8px 30px rgba(0,0,0,0.6)}
+    p.lead{margin:0;font-size:18px;color:rgba(255,255,255,0.88)}
+
+    .buttons{display:flex;gap:12px;margin-top:8px}
+    button{padding:10px 14px;border-radius:12px;border:0;font-weight:700;cursor:pointer;backdrop-filter:blur(4px)}
+    .btn-play{background:linear-gradient(90deg,var(--accent),#ff8c42);color:#081123}
+    .btn-confetti{background:linear-gradient(90deg,#7ee8fa,#b490ca);color:#061022}
+
+    /* right area: visuals */
+    .right{width:420px;flex:0 0 420px;position:relative;display:flex;align-items:center;justify-content:center}
+
+    /* balloon styles */
+    .balloon{position:absolute;bottom:-20%;width:110px;height:150px;border-radius:60% 60% 50% 50%;transform-origin:center bottom;animation:float 6s ease-in-out infinite;box-shadow:inset -6px -8px 18px rgba(0,0,0,0.15)}
+    .balloon::after{content:'';position:absolute;left:50%;bottom:-32px;width:2px;height:36px;background:rgba(255,255,255,0.06);transform:translateX(-50%)}
+    .b1{left:18%;background:linear-gradient(180deg,#ff7ab6,#ff4d6d);animation-duration:5.6s}
+    .b2{left:42%;background:linear-gradient(180deg,#ffd166,#ff9a3d);animation-duration:6.8s}
+    .b3{left:64%;background:linear-gradient(180deg,#8be9a8,#06d6a0);animation-duration:7.2s}
+    .b4{left:82%;background:linear-gradient(180deg,#9ad0f5,#6587ff);animation-duration:5.9s}
+
+    @keyframes float{
+      0%{transform:translateY(0) rotate(-4deg)}
+      50%{transform:translateY(-18vh) rotate(4deg)}
+      100%{transform:translateY(0) rotate(-4deg)}
+    }
+
+    /* confetti canvas full over card */
+    canvas.confetti{position:absolute;inset:0;pointer-events:none}
+
+    /* little footer */
+    .credits{position:absolute;left:12px;bottom:12px;font-size:12px;color:rgba(255,255,255,0.6)}
+
+    /* responsive */
+    @media (max-width:860px){
+      .card{flex-direction:column;height:auto;padding:18px}
+      .right{width:100%;height:260px}
+      .left{padding:8px}
+      h1{font-size:32px}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card" id="card">
+      <div class="left">
+        <h1>Selamat Ulang Tahun, <span style="color:var(--accent)">Aan</span>! 🎉</h1>
+        <p class="lead">Semoga bahagia, sehat, dan semua harapanmu tercapai. Nikmati hari spesialmu — ini hadiah kecil dari kami!</p>
+
+        <div class="buttons">
+          <button class="btn-play" id="btnPlay">Putar Lagu Ulang Tahun</button>
+          <button class="btn-confetti" id="btnConfetti">Pecah Konfeti</button>
+        </div>
+
+        <div style="height:10px"></div>
+        <p style="margin:0;color:rgba(255,255,255,0.7)">Klik <strong>Putar Lagu</strong> lalu tekan <strong>Pecah Konfeti</strong> untuk efek penuh.</p>
+
+        <div class="credits">Dibuat dengan ♥ di VS Code — Kirim link ini lewat WhatsApp!</div>
+      </div>
+
+      <div class="right">
+        <!-- balloons -->
+        <div class="balloon b1"></div>
+        <div class="balloon b2"></div>
+        <div class="balloon b3"></div>
+        <div class="balloon b4"></div>
+      </div>
+
+      <canvas class="confetti" id="confettiCanvas"></canvas>
+    </div>
+  </div>
+
+  <script>
+    // Simple confetti implementation
+    const canvas = document.getElementById('confettiCanvas');
+    const ctx = canvas.getContext('2d');
+    let W = 0, H = 0;
+    function resize(){
+      const r = document.getElementById('card').getBoundingClientRect();
+      canvas.width = r.width; canvas.height = r.height;
+      canvas.style.left = r.left + 'px';
+      canvas.style.top = r.top + 'px';
+      W = canvas.width; H = canvas.height;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // confetti particles
+    let confettis = [];
+    function random(min,max){return Math.random()*(max-min)+min}
+
+    function spawnConfetti(count=120){
+      confettis = [];
+      const colors=['#ff476f','#ffd166','#06d6a0','#7ad3ff','#c18cff'];
+      for(let i=0;i<count;i++){
+        confettis.push({
+          x: random(0,W), y: random(-H,0),
+          r: random(6,12),
+          dx: random(-2,2), dy: random(2,6),
+          ang: random(0,Math.PI*2),
+          da: random(-0.1,0.1),
+          color: colors[Math.floor(random(0,colors.length))]
+        });
+      }
+    }
+
+    let playing = false;
+    function update(dt){
+      ctx.clearRect(0,0,W,H);
+      for(let i=0;i<confettis.length;i++){
+        const p = confettis[i];
+        p.x += p.dx * dt * 60/16;
+        p.y += p.dy * dt * 60/16;
+        p.ang += p.da;
+        ctx.save();
+        ctx.translate(p.x,p.y);
+        ctx.rotate(p.ang);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.r/2, -p.r/2, p.r, p.r*0.6);
+        ctx.restore();
+        if(p.y > H + 40) p.y = random(-H, -10);
+      }
+    }
+
+    let last = performance.now();
+    function loop(now){
+      const dt = Math.min((now-last)/1000, 0.05);
+      last = now;
+      update(dt);
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+
+    // Hook to button
+    document.getElementById('btnConfetti').addEventListener('click', ()=>{
+      spawnConfetti(200);
+    });
+
+    // Simple melody using WebAudio (happy birthday short)
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let actx=null;
+    const notes = [  392, 392, 440, 392, 523, 494, // Happy birthday (part)
+                     392, 392, 440, 392, 587, 523 ];
+    const durations = [0.35,0.35,0.7,0.7,0.7,0.9, 0.35,0.35,0.7,0.7,0.7,0.9];
+
+    function playTune(){
+      if(!actx) actx = new AudioCtx();
+      let t = actx.currentTime + 0.05;
+      for(let i=0;i<notes.length;i++){
+        const o = actx.createOscillator();
+        const g = actx.createGain();
+        o.type='sine';
+        o.frequency.value = notes[i];
+        g.gain.value = 0.15;
+        o.connect(g); g.connect(actx.destination);
+        o.start(t);
+        o.stop(t + durations[i]);
+        t += durations[i];
+      }
+    }
+
+    document.getElementById('btnPlay').addEventListener('click', ()=>{
+      try{ playTune(); }catch(e){ console.warn(e); }
+    });
+
+    // play confetti on load small
+    setTimeout(()=>spawnConfetti(40), 700);
+  </script>
+</body>
+</html>
